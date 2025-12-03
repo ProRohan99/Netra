@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "vortex"
+version = "0.1.0"
+description = "Next-Generation Async Vulnerability Engine"
+authors = ["Admin <admin@example.com>"]
+readme = "README.md"
+packages = [{include = "vortex"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+aiohttp = "^3.9.0"
+fastapi = "^0.109.0"
+uvicorn = "^0.27.0"
+typer = "^0.9.0"
+aiobotocore = "^2.11.0"
+pydantic = "^2.6.0"
+python-multipart = "^0.0.9"
+# uvloop is excluded for Windows compatibility
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
+pytest-asyncio = "^0.23.0"
+black = "^24.1.0"
+isort = "^5.13.0"
+mypy = "^1.8.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
