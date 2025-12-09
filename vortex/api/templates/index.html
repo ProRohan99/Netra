@@ -20,6 +20,8 @@
             <div class="brand">
                 <div class="logo-icon">V</div>
                 <h1>VORTEX</h1>
+                <button class="btn-icon" onclick="toggleSidebar()"
+                    style="margin-left:auto; background:none; border:none; color:#666; cursor:pointer;">◀</button>
             </div>
 
             <nav class="nav-menu">
@@ -109,6 +111,19 @@
                                     <span class="card-desc">Active Penetration</span>
                                 </div>
                             </label>
+                        </div>
+
+                        <!-- Integrations -->
+                        <div class="integrations-section"
+                            style="margin-top:2rem; border-top:1px solid #333; padding-top:1rem;">
+                            <h4 style="margin-bottom:1rem; color:#888;">EXTERNAL INTEGRATIONS</h4>
+                            <div class="input-wrapper" style="gap:1rem; flex-wrap:wrap;">
+                                <input type="text" name="defect_dojo_url"
+                                    placeholder="DefectDojo URL (e.g. http://defectdojo.local)" style="flex:2">
+                                <input type="password" name="defect_dojo_key" placeholder="API Key" style="flex:1">
+                                <input type="number" name="engagement_id" placeholder="Engagement ID"
+                                    style="flex:0.5; min-width:100px;">
+                            </div>
                         </div>
                     </form>
                 </div>

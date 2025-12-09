@@ -39,6 +39,28 @@ body {
     display: flex;
     flex-direction: column;
     padding: 2rem;
+    transition: width 0.3s ease;
+    overflow: hidden;
+}
+
+.sidebar.collapsed {
+    width: 80px;
+    padding: 2rem 1rem;
+}
+
+.sidebar.collapsed .brand h1,
+.sidebar.collapsed .nav-item span:not(.icon),
+.sidebar.collapsed .status-panel,
+.sidebar.collapsed .btn-icon {
+    display: none;
+}
+
+.sidebar.collapsed .nav-item {
+    justify-content: center;
+}
+
+.sidebar.collapsed .logo-icon {
+    margin: 0 auto;
 }
 
 .brand {

@@ -20,7 +20,14 @@ begin
   uri = URI.parse(target)
   robots_uri = URI.join(uri, "/robots.txt")
   
-  response = Net::HTTP.get_response(robots_uri)
+  http = Net::HTTP.new(robots_uri.host, robots_uri.port)
+  http.use_ssl = (robots_uri.scheme == "https")
+  http.verify_mode = OpenSSL::SSL::VERIFY_NONE # For pentesters convenience
+  http.open_timeout = 5
+  http.read_timeout = 5
+  
+  request = Net::HTTP::Get.new(robots_uri.request_uri)
+  response = http.request(request)
   
   result = {
     script: "robots_analyzer.rb",

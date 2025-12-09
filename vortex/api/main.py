@@ -17,6 +17,8 @@ from vortex.core.modules.http import HTTPScanner
 from vortex.core.modules.cloud import CloudScanner
 from vortex.core.modules.iot import IoTScanner
 from vortex.core.modules.graphql import GraphQLScanner
+from vortex.core.modules.pentest import PentestEngine
+from vortex.integrations.defectdojo import DefectDojoClient
 
 # Database Setup
 # Use SQLite for local development default, Postgres for Docker
@@ -115,6 +117,16 @@ async def run_scan_task(scan_id: int):
             scan.results = results
             scan.status = "completed"
             
+            # Post-Scan Actions: DefectDojo Import
+            if opts.get("defect_dojo_url") and opts.get("defect_dojo_key") and opts.get("engagement_id"):
+                try:
+                    logger.info("Triggering DefectDojo Import...")
+                    dd_client = DefectDojoClient(opts.get("defect_dojo_url"), opts.get("defect_dojo_key"))
+                    await dd_client.import_scan(results, int(opts.get("engagement_id")))
+                except Exception as dd_e:
+                    logger.error(f"DefectDojo Integration Failed: {dd_e}")
+                    # Don't fail the scan status, just log
+            
         except asyncio.TimeoutError:
              scan.status = "failed"
              scan.results = {"error": "Scan timed out (300s limit)"}
@@ -153,3 +165,12 @@ async def read_scan(scan_id: int, session: AsyncSession = Depends(get_session)):
     if not scan:
         raise HTTPException(status_code=404, detail="Scan not found")
     return scan
+
+@app.delete("/scans/{scan_id}")
+async def delete_scan(scan_id: int, session: AsyncSession = Depends(get_session)):
+    scan = await session.get(Scan, scan_id)
+    if not scan:
+        raise HTTPException(status_code=404, detail="Scan not found")
+    await session.delete(scan)
+    await session.commit()
+    return {"ok": True}

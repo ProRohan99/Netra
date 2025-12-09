@@ -15,6 +15,28 @@ function switchView(viewName) {
     }
 }
 
+// Sidebar Toggle
+function toggleSidebar() {
+    document.querySelector('.sidebar').classList.toggle('collapsed');
+}
+
+// Delete Scan
+async function deleteScan(id) {
+    if (!confirm('Are you sure you want to delete this scan?')) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/scans/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+            loadHistory();
+        } else {
+            alert('Failed to delete scan');
+        }
+    } catch (e) {
+        console.error(e);
+        alert('Error deleting scan');
+    }
+}
+
 // Submit Scan
 async function submitScan(event) {
     event.preventDefault();
@@ -23,7 +45,11 @@ async function submitScan(event) {
         cloud: formData.get('cloud') === 'on',
         iot: formData.get('iot') === 'on',
         graphql: formData.get('graphql') === 'on',
-        auto_exploit: formData.get('auto_exploit') === 'on'
+        auto_exploit: formData.get('auto_exploit') === 'on',
+        // Integrations
+        defect_dojo_url: formData.get('defect_dojo_url'),
+        defect_dojo_key: formData.get('defect_dojo_key'),
+        engagement_id: formData.get('engagement_id')
     };
 
     const payload = {
@@ -90,6 +116,7 @@ async function loadHistory() {
                     ${scan.status === 'completed' || scan.status === 'failed' ?
                     `<button onclick="viewResults(${scan.id})" class="btn-sm">View Report</button>` :
                     '<span style="opacity:0.5; font-size:0.8rem;">Running...</span>'}
+                    <button onclick="deleteScan(${scan.id})" class="btn-sm btn-danger" title="Delete">🗑️</button>
                 </td>
             `;
             tbody.appendChild(tr);

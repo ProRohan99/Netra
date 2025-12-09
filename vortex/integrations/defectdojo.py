@@ -42,11 +42,42 @@ class DefectDojoClient:
             logger.info("No findings to import to DefectDojo")
             return
             
-        # Prepare payload (Multipart is usually required for file upload, but we can try JSON if supported or mock the file)
-        # DefectDojo API usually expects a file. We'll simulate a JSON file upload.
+        # Prepare generic findings payload
+        # In Generic Findings Import, we upload a JSON file.
         
-        # For this implementation, we'll just log the action as we don't have a live DefectDojo instance to test against
-        # and the API requires multipart/form-data with a file.
+        scan_date = datetime.now().strftime("%Y-%m-%d")
+        payload = {
+            "findings": findings,
+            "date": scan_date,
+            "engagement_id": engagement_id,
+            "scan_type": scan_type
+        }
         
-        logger.info(f"Would import {len(findings)} findings to DefectDojo Engagement {engagement_id}")
-        # In a real app, we would use aiohttp.FormData to upload the JSON file.
+        # We need to construct a "fake" file for the upload
+        file_content = json.dumps(payload)
+        
+        data = aiohttp.FormData()
+        data.add_field("engagement", str(engagement_id))
+        data.add_field("scan_type", "Generic Findings Import")
+        data.add_field("verified", "true")
+        data.add_field("active", "true")
+        data.add_field("minimum_severity", "Low")
+        data.add_field("skip_duplicates", "true")
+        data.add_field("close_old_findings", "false")
+        
+        # Add the file
+        data.add_field("file", file_content, filename="vortex_results.json", content_type="application/json")
+        
+        try:
+            async with aiohttp.ClientSession(headers={"Authorization": f"Token {self.api_key}"}) as session:
+                async with session.post(endpoint, data=data) as resp:
+                    if resp.status == 201:
+                        logger.info(f"Successfully imported scan to DefectDojo. ID: {engagement_id}")
+                        return {"ok": True, "status": resp.status}
+                    else:
+                        resp_text = await resp.text()
+                        logger.error(f"Failed to import to DefectDojo: {resp.status} - {resp_text}")
+                        return {"ok": False, "status": resp.status, "error": resp_text}
+        except Exception as e:
+            logger.error(f"DefectDojo Connection Error: {e}")
+            return {"ok": False, "error": str(e)}
