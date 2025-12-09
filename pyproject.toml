@@ -2,7 +2,7 @@
 name = "vortex"
 version = "0.1.0"
 description = "Next-Generation Async Vulnerability Engine"
-authors = ["Admin <admin@example.com>"]
+authors = ["Admin <poojaspatel1375@gmail.com>"]
 readme = "README.md"
 packages = [{include = "vortex"}]
 
@@ -24,6 +24,7 @@ pytest-asyncio = "^0.23.0"
 black = "^24.1.0"
 isort = "^5.13.0"
 mypy = "^1.8.0"
+aioresponses = "^0.7.6"
 
 [build-system]
 requires = ["poetry-core"]

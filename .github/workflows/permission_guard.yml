@@ -1,0 +1,40 @@
+name: Permission Guard
+
+on:
+  issues:
+    types: [assigned, labeled]
+  pull_request:
+    types: [assigned, labeled]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  enforce-permissions:
+    runs-on: ubuntu-latest
+    if: github.actor != 'PoojasPatel013'
+    steps:
+      - name: Revert Unauthorized Actions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_URL: ${{ github.event.issue.html_url || github.event.pull_request.html_url }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          echo "Unauthorized action detected by user: $ACTOR"
+          
+          # Revert Assigned
+          if [[ "${{ github.event.action }}" == "assigned" ]]; then
+            ASSIGNEE="${{ github.event.assignee.login }}"
+            echo "Reverting assignment of $ASSIGNEE on $ISSUE_URL"
+            gh issue edit "$ISSUE_URL" --remove-assignee "$ASSIGNEE"
+            gh issue comment "$ISSUE_URL" --body "⚠️ **Permission Denied**: @$ACTOR, only repository admins can assign issues."
+          fi
+          
+          # Revert Labeled
+          if [[ "${{ github.event.action }}" == "labeled" ]]; then
+            LABEL="${{ github.event.label.name }}"
+            echo "Removing label '$LABEL' from $ISSUE_URL"
+            gh issue edit "$ISSUE_URL" --remove-label "$LABEL"
+            gh issue comment "$ISSUE_URL" --body "⚠️ **Permission Denied**: @$ACTOR, only repository admins can manage labels."
+          fi
