@@ -19,6 +19,7 @@ from vortex.core.modules.iot import IoTScanner
 from vortex.core.modules.graphql import GraphQLScanner
 from vortex.core.modules.pentest import PentestEngine
 from vortex.integrations.defectdojo import DefectDojoClient
+from vortex.core.reporter import SARIFReporter
 
 # Database Setup
 # Use SQLite for local development default, Postgres for Docker
@@ -174,3 +175,17 @@ async def delete_scan(scan_id: int, session: AsyncSession = Depends(get_session)
     await session.delete(scan)
     await session.commit()
     return {"ok": True}
+
+@app.get("/scans/{scan_id}/sarif")
+async def export_scan_sarif(scan_id: int, session: AsyncSession = Depends(get_session)):
+    scan = await session.get(Scan, scan_id)
+    if not scan:
+        raise HTTPException(status_code=404, detail="Scan not found")
+    
+    if not scan.results:
+        return {"error": "Scan has no results yet"}
+
+    reporter = SARIFReporter()
+    sarif_data = reporter.convert_scan_results(scan.results, scan.target)
+    
+    return sarif_data

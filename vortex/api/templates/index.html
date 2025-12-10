@@ -11,6 +11,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap"
         rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -20,10 +21,10 @@
     </audio>
     <script>
         // Ensure audio plays (browsers might block autoplay until interaction)
-        document.addEventListener('click', function() {
+        document.addEventListener('click', function () {
             var audio = document.getElementById("bg-music");
             audio.play().catch(e => console.log("Audio play failed:", e));
-        }, {once: true});
+        }, { once: true });
     </script>
 
     <div class="app-container">
@@ -32,8 +33,12 @@
             <div class="brand">
                 <div class="logo-icon">N</div>
                 <h1>NETRA</h1>
-                <button class="btn-icon" onclick="toggleSidebar()"
-                    style="margin-left:auto; background:none; border:none; color:#666; cursor:pointer;">◀</button>
+                <div class="brand-controls" style="margin-left:auto; display:flex; gap:0.5rem;">
+                    <button class="btn-icon" onclick="toggleMusic()" id="music-btn" title="Toggle Music"
+                        style="background:none; border:none; cursor:pointer;">🔊</button>
+                    <button class="btn-icon" onclick="toggleSidebar()"
+                        style="background:none; border:none; color:#999; cursor:pointer;">◀</button>
+                </div>
             </div>
 
             <nav class="nav-menu">
@@ -74,8 +79,22 @@
             <!-- Dashboard View -->
             <div id="view-dashboard" class="content-view active">
                 <div class="hero-section">
-                    <h2>Vulnerability Scanners</h2>
-                    <p>Initialize a new scan against a target infrastructure.</p>
+                    <h2>Operational Intelligence</h2>
+                    <p>Real-time threat analytics and scan telemetry.</p>
+                </div>
+
+                <!-- Analytics Charts -->
+                <div class="charts-container"
+                    style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; margin-bottom:2rem;">
+                    <div class="card" style="padding:1.5rem;">
+                        <h4 style="margin-bottom:1rem; color:var(--text-secondary);">Vulnerability Severity Distribution
+                        </h4>
+                        <canvas id="severityChart" style="max-height:200px;"></canvas>
+                    </div>
+                    <div class="card" style="padding:1.5rem;">
+                        <h4 style="margin-bottom:1rem; color:var(--text-secondary);">Scan Activity (Last 7 Days)</h4>
+                        <canvas id="activityChart" style="max-height:200px;"></canvas>
+                    </div>
                 </div>
 
                 <div class="scan-card">
