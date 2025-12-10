@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vortex | Security Engine</title>
+    <title>NETRA | Advanced Security Operations</title>
     <link rel="stylesheet" href="/static/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,12 +14,24 @@
 </head>
 
 <body>
+    <!-- Theme Music: Looped & Autoplay -->
+    <audio id="bg-music" loop autoplay>
+        <source src="/static/theme.mp3" type="audio/mpeg">
+    </audio>
+    <script>
+        // Ensure audio plays (browsers might block autoplay until interaction)
+        document.addEventListener('click', function() {
+            var audio = document.getElementById("bg-music");
+            audio.play().catch(e => console.log("Audio play failed:", e));
+        }, {once: true});
+    </script>
+
     <div class="app-container">
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="brand">
-                <div class="logo-icon">V</div>
-                <h1>VORTEX</h1>
+                <div class="logo-icon">N</div>
+                <h1>NETRA</h1>
                 <button class="btn-icon" onclick="toggleSidebar()"
                     style="margin-left:auto; background:none; border:none; color:#666; cursor:pointer;">◀</button>
             </div>
