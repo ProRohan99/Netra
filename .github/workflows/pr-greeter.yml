@@ -1,0 +1,54 @@
+name: "PR Greeter & Router"
+
+on:
+  pull_request_target:
+    types: [opened, ready_for_review]
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    
+    steps:
+      # 1. Check which files were changed
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            core:
+              - 'core/**'
+              - 'netra/core/**'
+              - 'config/**'
+              - 'deploy/helm/**'
+            docs:
+              - '**/*.md'
+
+      # 2. Logic: If CORE files are changed
+      - name: Comment - Core Files Changed
+        if: steps.changes.outputs.core == 'true'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ## ⚠️ Core Files Modified
+            Thanks for the PR @${{ github.actor }}! 
+            
+            Because this updates `core/`, `config/`, or `deploy/helm/`:
+            - [x] High-priority review triggered.
+            - 🔔 **Notifying Admins:** @PoojasPatel013
+            
+            Please wait for an admin to approve these critical changes.
+
+      # 3. Logic: If only standard files (and NOT core)
+      - name: Comment - Standard PR
+        if: steps.changes.outputs.core == 'false'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ## 👋 Thanks for contributing!
+            
+            We have received your PR. The CI checks will run shortly.
+            A maintainer will review this as soon as possible.

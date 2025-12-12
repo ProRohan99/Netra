@@ -1,0 +1,11 @@
+# This automatically requests a review from these users
+# when files in these directories are touched.
+
+# Default owner for everything
+* @PoojasPatel013
+
+# Core files owner (Pooja)
+/netra/core/   @PoojasPatel013
+/deploy/helm/ @PoojasPatel013
+/config/ @PoojasPatel013
+/netra/* @PoojasPatel013

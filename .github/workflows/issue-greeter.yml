@@ -1,0 +1,27 @@
+name: "Issue Welcome Bot"
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+
+jobs:
+  welcome:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add welcome comment
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            Hi @${{ github.actor }}! 👋
+            
+            Thanks for opening this issue. @PoojasPatel013 has been notified.
+            
+            **Next Steps:**
+            1. If this is a bug, please ensure you provided steps to reproduce.
+            2. If this is a feature request, please explain the "Why".
+            
+            @PoojasPatel013 will triage this ticket.
