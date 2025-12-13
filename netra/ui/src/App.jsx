@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Dashboard from './views/Dashboard';
+import Assets from './views/Assets';
 import Settings from './views/Settings';
 import { AnimatePresence, motion } from 'framer-motion';
 
 function App() {
+    // ... existing useState ...
     const [activeTab, setActiveTab] = useState('dashboard');
     const [darkMode, setDarkMode] = useState(() => {
         // Feature: Theme Persistence
@@ -39,6 +41,11 @@ function App() {
                     {activeTab === 'dashboard' && (
                         <motion.div key="dashboard" variants={variants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3, ease: "easeOut" }}>
                             <Dashboard />
+                        </motion.div>
+                    )}
+                    {activeTab === 'assets' && (
+                        <motion.div key="assets" variants={variants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3, ease: "easeOut" }}>
+                            <Assets />
                         </motion.div>
                     )}
                     {activeTab === 'settings' && (

@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Terminal, Play, Activity, AlertOctagon, CheckCircle, Server, Globe, Cpu } from 'lucide-react';
+import { Terminal, Play, Activity, AlertOctagon, CheckCircle, Server, Globe, Cpu, Shield } from 'lucide-react';
+import { motion } from 'framer-motion';
+import ActivityFeed from '../components/ActivityFeed';
 
-const StatCard = ({ title, value, icon: Icon, color, trend }) => (
-    <div className="bg-cyber-dark border border-cyber-border p-5 rounded-xl relative overflow-hidden group hover:border-radium-500/50 transition-all duration-300">
+const StatCard = ({ title, value, icon: Icon, color, trend, delay }) => (
+    <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: delay }}
+        className="bg-cyber-dark border border-cyber-border p-5 rounded-xl relative overflow-hidden group hover:border-radium-500/50 transition-all duration-300"
+    >
         <div className={`absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity ${color}`}>
             <Icon className="w-16 h-16" />
         </div>
@@ -14,7 +21,7 @@ const StatCard = ({ title, value, icon: Icon, color, trend }) => (
             <span className="text-3xl font-bold text-white font-display text-glow">{value}</span>
             <span className="text-xs text-radium-400 mb-1 font-mono">{trend}</span>
         </div>
-    </div>
+    </motion.div>
 );
 
 const Dashboard = () => {
@@ -80,10 +87,10 @@ const Dashboard = () => {
         <div className="space-y-6">
             {/* KPI Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard title="TOTAL SCANS" value="1,284" icon={Activity} color="text-blue-500" trend="+12% this week" />
-                <StatCard title="CRITICAL VULNS" value="42" icon={AlertOctagon} color="text-red-500" trend="-5% resolved" />
-                <StatCard title="ACTIVE ASSETS" value="856" icon={Server} color="text-green-500" trend="+3 new" />
-                <StatCard title="THREAT LEVEL" value="MODERATE" icon={Globe} color="text-yellow-500" trend="Defcon 3" />
+                <StatCard title="TOTAL SCANS" value="1,284" icon={Activity} color="text-blue-500" trend="+12% this week" delay={0.1} />
+                <StatCard title="CRITICAL VULNS" value="42" icon={AlertOctagon} color="text-red-500" trend="-5% resolved" delay={0.2} />
+                <StatCard title="ACTIVE ASSETS" value="856" icon={Server} color="text-green-500" trend="+3 new" delay={0.3} />
+                <StatCard title="THREAT LEVEL" value="MODERATE" icon={Globe} color="text-yellow-500" trend="Defcon 3" delay={0.4} />
             </div>
 
             {/* Main Interface */}
@@ -119,8 +126,8 @@ const Dashboard = () => {
                             onClick={startScan}
                             disabled={scanning}
                             className={`w-full py-3 rounded-lg font-bold font-mono tracking-widest transition-all duration-300 flex items-center justify-center gap-2 ${scanning
-                                    ? 'bg-radium-900/50 text-radium-500 cursor-not-allowed border border-radium-500/20'
-                                    : 'bg-radium-600 hover:bg-radium-500 text-white shadow-neon hover:scale-[1.02]'
+                                ? 'bg-radium-900/50 text-radium-500 cursor-not-allowed border border-radium-500/20'
+                                : 'bg-radium-600 hover:bg-radium-500 text-white shadow-neon hover:scale-[1.02]'
                                 }`}
                         >
                             {scanning ? <Activity className="w-5 h-5 animate-spin" /> : <Play className="w-5 h-5" />}
@@ -129,25 +136,8 @@ const Dashboard = () => {
                     </div>
 
                     {/* Console Logs */}
-                    <div className="flex-1 bg-cyber-black border border-cyber-border rounded-xl p-4 font-mono text-xs overflow-hidden flex flex-col shadow-inner">
-                        <div className="flex items-center justify-between mb-2 pb-2 border-b border-cyber-border">
-                            <span className="text-slate-400">System Logs</span>
-                            <div className="flex gap-1.5">
-                                <div className="w-2.5 h-2.5 rounded-full bg-red-500/20 border border-red-500/50"></div>
-                                <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/20 border border-yellow-500/50"></div>
-                                <div className="w-2.5 h-2.5 rounded-full bg-green-500/20 border border-green-500/50"></div>
-                            </div>
-                        </div>
-                        <div className="flex-1 overflow-y-auto space-y-1 text-radium-200 scrollbar-thin">
-                            {logs.length === 0 && <span className="text-slate-700 typing-cursor">Awaiting commands...</span>}
-                            {logs.map((log, i) => (
-                                <div key={i} className="break-all opacity-80 hover:opacity-100 transition-opacity">
-                                    <span className="text-slate-500 mr-2">{'>'}</span>
-                                    {log}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                    {/* Activity Feed (Replacing Logs) */}
+                    <ActivityFeed />
                 </div>
 
                 {/* Right Column: Visualization / Results */}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Bell, User, Sun, Moon, Search } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const Header = ({ darkMode, setDarkMode }) => {
     return (
@@ -21,9 +22,15 @@ const Header = ({ darkMode, setDarkMode }) => {
                 {/* Theme Toggle */}
                 <button
                     onClick={() => setDarkMode(!darkMode)}
-                    className="p-2 rounded-lg text-slate-400 hover:text-radium-400 hover:bg-cyber-dark transition-colors"
+                    className={`relative w-14 h-7 rounded-full transition-colors duration-300 ${darkMode ? 'bg-radium-600/20 border border-radium-500/50' : 'bg-slate-200 border border-slate-300'}`}
                 >
-                    {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                    <motion.div
+                        className={`absolute top-0.5 left-0.5 w-5.5 h-5.5 rounded-full shadow-md flex items-center justify-center ${darkMode ? 'bg-radium-500' : 'bg-white'}`}
+                        animate={{ x: darkMode ? 28 : 0 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    >
+                        {darkMode ? <Moon className="w-3 h-3 text-black" /> : <Sun className="w-3 h-3 text-yellow-500" />}
+                    </motion.div>
                 </button>
 
                 {/* Notifications */}
