@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # 1. Message Bus
+  redis:
+    image: redis:7-alpine
+    container_name: netra-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: on-failure
+
+  # 2. Graph Database
+  # Using standard neo4j image. 
+  # Access UI at http://localhost:7474
+  # DB at bolt://localhost:7687
+  neo4j:
+    image: neo4j:5-community
+    container_name: netra-neo4j
+    ports:
+      - "7474:7474" # HTTP
+      - "7687:7687" # Bolt
+    environment:
+      - NEO4J_AUTH=neo4j/netra-secret
+      # Memory limits to be safe on your system (Heap + PageCache)
+      - NEO4J_server_memory_heap_initial__size=256m
+      - NEO4J_server_memory_heap_max__size=512m
+    volumes:
+      - neo4j_data:/data
+    restart: on-failure
+
+  # 3. Object Storage (S3 Compatible)
+  minio:
+    image: minio/minio
+    container_name: netra-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=netra-storage-secret
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    restart: on-failure
+
+volumes:
+  redis_data:
+  neo4j_data:
+  minio_data:

@@ -3,6 +3,11 @@ set -e
 
 echo "🚀 Starting Netra v2 'Lightweight' Infrastructure Setup..."
 
+# Auto-add local tools to PATH if they exist
+if [ -d "$(pwd)/_tools" ]; then
+    export PATH="$(pwd)/_tools:$PATH"
+fi
+
 # Function to check command existence
 check_cmd() {
     if ! command -v "$1" &> /dev/null; then
