@@ -1,107 +1,134 @@
-# NETRA - Enterprise Attack Surface Management (ASM)
+# NETRA v2 - AI-Native Attack Surface Management (ASM) Platform
 
-## 1. Product Vision
-NETRA is not just a scanner; it is a **Continuous Attack Surface Management (ASM)** platform designed for modern, cloud-native enterprises.
+> **Status**: v2.0 (Migration to Distributed ML Architecture)
+> **Stack**: Python 3.10, React + Vite, Neo4j, Redis Streams, MinIO, Docker Compose
 
-While traditional scanners wait for you to define a target, NETRA continuously monitors your infrastructure to detect **Shadow IT**, **Zombie APIs**, and **Compliance Drifts** in real-time. Built on a scalable Kubernetes-native architecture, it scales from a single startup website to Fortune 500 infrastructure effortlessly.
-
----
-
-## 2. The "NETRA Advantage" (Key Differentiators)
-
-### 🛡️ Feature A: Automated Asset Discovery (Reconnaissance)
-**The Problem**: Companies don't know what they own.
-**The Solution**: Input a company name, and NETRA performs deep recursive enumeration:
-*   **Certificate Transparency Logs**: Finds subdomains before they are even live.
-*   **Cloud Hunter**: Scans AWS, Azure, and GCP IP ranges for assets belonging to the organization.
-*   **Acquisition Mapping**: Links subsidiary companies to the main dashboard.
-
-### ⚖️ Feature B: GRC & Compliance Engine
-**The Problem**: Security teams speak "vulnerabilities"; C-Levels speak "risk."
-**The Solution**: Every finding is automatically mapped to major compliance frameworks.
-*   **Open S3 Bucket** → Mapped to **HIPAA §164.312(a)(1)**
-*   **Weak SSL Cipher** → Mapped to **PCI-DSS Req 4.1**
-**Benefit**: Generates audit-ready PDF reports instantly.
-
-### 🧟 Feature C: "Zombie" API Detection
-**The Problem**: Undocumented APIs are the easiest way to breach a company.
-**The Solution**: NETRA parses client-side JavaScript bundles to extract API routes that are not in the official documentation (Shadow APIs) and tests them for **Broken Object Level Authorization (BOLA)**.
-
-### 🔐 Feature D: Identity & Access Auditor (IAM Security)
-**The Problem**: Weak sessions allow account takeovers (hijacking).
-**The Solution**: A dedicated module that audits authentication flows without exploiting them:
-*   **OAuth/SAML Validator**: Checks for misconfigured redirect URIs and weak token signatures.
-*   **Session Strength Analysis**: Verifies entropy of session cookies and presence of `Secure`/`HttpOnly` flags.
-*   **MFA Gap Analysis**: Identifies administrative portals that lack Multi-Factor Authentication.
-
-### 📉 Feature E: Resilience & Stress Testing
-**The Problem**: Denial of Service (DoS) attacks cause downtime and revenue loss.
-**The Solution**: Controlled availability testing to ensure systems don't crash.
-*   **Rate Limit Verification**: Safely tests if API endpoints correctly block traffic after a threshold (e.g., 100 req/min).
-*   **Load Simulation**: Simulates user traffic spikes to validate auto-scaling rules in Kubernetes.
-*   **Slowloris Defense Check**: Verifies web server timeouts are configured to prevent connection exhaustion.
-
-### 🕵️ Feature F: Dark Web Threat Intelligence
-**The Problem**: Attackers often buy access using stolen credentials before launching an attack.
-**The Solution**: NETRA actively monitors external leak sources for corporate data.
-*   **Breach Radar**: Integrates with "HaveIBeenPwned" and private leak databases to alert instantly if corporate emails appear in a data dump.
-*   **Paste Site Monitor**: Scrapes sites like Pastebin and GitHub Gists for accidental leaks of API keys or internal config files.
-    *   **Executive Protection**: specialized monitoring for C-suite personal emails to prevent spear-phishing campaigns.
-
-### ⚔️ Feature G: Active Verification Engine (Safe Exploitation)
-**The Problem**: Scanners alert on "potential" bugs. Engineers ignore them as false positives.
-**The Solution**: NETRA performs **Safe Active Exploitation** to prove the bug exists without taking down the server.
-*   **Safe RCE Check**: Instead of `rm -rf /`, it executes `echo $((55+55))` and checks if the response contains `110`. Proof of execution, zero damage.
-*   **SQL Injection (Time-Based)**: Injects `WAITFOR DELAY '0:0:5'` and measures the response time deviation. If the server sleeps, the bug is real.
-*   **LFI Probe**: Attempts to read benign files like `/etc/hostname` (never `/etc/shadow`) to confirm traversal vulnerabilities.
-*   **Auto-Exploit Module**: Automatically chains findings (e.g., finding an exposed `.env` file -> extracting DB creds -> connecting to DB -> proving access).
-
-### 🕸️ Feature H: Deception & Honeytraps
-**The Problem**: "Sniffing" attacks (like Ettercap) are illegal in most enterprise contexts.
-**The Solution**: NETRA sets "Ghost Routes" (fake admin portals, `/admin-backup`) that sit neutrally.
-*   **Passive Fingerprinting**: If an attacker probes these honeypots, NETRA silently logs their IP, User-Agent, and JA3 fingerprint.
-*   **Neutral Defense**: It doesn't hack back; it simply sits and waits for the attacker to make a mistake.
-
-### 🛡️ Feature I: Client-Side Integrity Guard (Malware Detector)
-**The Problem**: Server-side scanners miss attacks happening in the customer's browser (e.g., Magecart credit card skimming).
-**The Solution**: NETRA scans the site's live JavaScript assets.
-*   **Cryptominer Detection**: Identifies JS patterns used for illicit mining.
-*   **Magecart Hunter**: Detects changes in payment form scripts that send data to unauthorized domains.
-
-### 🧬 Feature J: Supply Chain "DNA" Sequencing
-**The Problem**: Third-party libraries (like Polyfill.io) can be hijacked, turning trusted assets into malware vectors.
-**The Solution**: NETRA verifies the "DNA" of every loaded library.
-*   **Hash Verification**: Checks if `jquery.js` loading on your site matches the official vendor hash.
-*   **Drift Detection**: Alerts immediately if a known library's code changes unexpectedly (e.g., a "supply chain" update injects a backdoor).
+NETRA is an **Applied ML Systems** research platform designed to demonstrate advanced concepts in distributed cybersecurity. It continuously discovers assets, maps them in a Knowledge Graph, and uses machine learning to predict risks.
 
 ---
 
-## 3. Enterprise Architecture
-NETRA is designed to handle massive scale using a distributed microservices architecture.
+## 🏗️ v2 Architecture: "The ML Systems Approach"
 
-### The Stack
-*   **Orchestration**: Kubernetes (Helm Charts provided).
-*   **Queue System**: Redis Streams (Distributes millions of targets to workers).
-*   **Data Lake**: PostgreSQL (Persistent History) & AsyncIO Engine.
-*   **Identity**: Keycloak (OIDC/SAML integration for Enterprise SSO).
+Netra v2 departs from the monolithic scanner model to a distributed, event-driven architecture optimized for High-Throughput I/O and CPU-bound Inference.
 
-### Deployment (Helm)
-```bash
-helm repo add netra https://charts.netra-security.io
-helm install netra-platform netra/enterprise --set replicas=50
+```mermaid
+graph TD
+    User([User]) -->|HTTP| UI[React UI]
+    User -->|HTTP| API[FastAPI Gateway]
+    
+    API -->|Push Event| Redis{Redis Stream: netra:events}
+    
+    subgraph "Workload Isolation"
+        WorkerIO[Worker Ingest (I/O Bound)]
+        WorkerML[Worker ML (CPU Bound)]
+    end
+    
+    Redis -->|Consume| WorkerIO
+    WorkerIO -->|Raw Data| RedisRaw{Redis Stream: netra:raw}
+    RedisRaw -->|Consume| WorkerML
+    
+    WorkerIO -->|Legacy Scans| Ruby[Ruby Bridge]
+    
+    WorkerML -->|Update| Graph[(Neo4j Graph)]
+    WorkerML -->|Store Artifacts| S3[(MinIO Object Store)]
 ```
 
+### Key Components
+1.  **Frontend**: React + Vite + TailwindCSS (Served via Nginx).
+2.  **Backend API**: FastAPI (AsyncIO).
+3.  **The "Bus"**: Redis Streams for strictly ordered event processing.
+4.  **Ingestion Worker**: Lightweight, I/O-bound process for DNS resolution and Port Scanning. Includes a **Ruby Bridge** to execute legacy scripts.
+5.  **ML Worker**: Resource-intensive process for False Positive reduction and future model inference.
+6.  **Knowledge Graph**: Neo4j stores the "World State" (e.g., `Domain -> RESOLVES_TO -> IP`).
+
 ---
 
-## 4. Integration Ecosystem
-NETRA fits into the modern DevSecOps pipeline:
-*   **Ticket Systems**: 2-way sync with Jira and ServiceNow. (A bug found in NETRA automatically creates a Jira ticket; closing the Jira ticket triggers a re-scan in NETRA).
-*   **SIEM**: Forwards logs to Splunk or Datadog via webhooks.
-*   **CI/CD**: Blocks Jenkins/GitLab builds if critical API vulnerabilities are found.
+## 🚀 Quick Start (Docker)
+
+Netra v2 is designed to run locally with a single command.
+
+### Prerequisites
+- Docker & Docker Compose
+
+### Setup
+1.  **Clone & Start**:
+    ```bash
+    git clone https://github.com/PoojasPatel013/Vortex.git
+    cd Vortex
+    docker compose up --build -d
+    ```
+
+2.  **Access the Platform**:
+    | Service | URL | Credentials |
+    | :--- | :--- | :--- |
+    | **Netra UI** | [http://localhost:3000](http://localhost:3000) | - |
+    | **API Docs** | [http://localhost:8000/docs](http://localhost:8000/docs) | - |
+    | **Redis Commander** | [http://localhost:8081](http://localhost:8081) | - |
+    | **Neo4j** | [http://localhost:7474](http://localhost:7474) | `neo4j` / `netra-secret` |
+    | **MinIO** | [http://localhost:9001](http://localhost:9001) | `admin` / `netra-storage-secret` |
 
 ---
 
-## 5. Roadmap: The Path to Series A
-*   **Q1: AI-Powered Remediation**: Using LLMs to not just find the bug, but generate the specific code patch to fix it (e.g., "Here is the Nginx config to fix your missing security headers").
-*   **Q2: Agentless Cloud Security**: Direct integration with AWS IAM roles to scan internal VPCs without deploying scanners.
-*   **Q3: SaaS Multi-Tenancy**: Re-architecting for a SaaS model where multiple companies share the same infrastructure with strict data isolation.
+## 🧪 Development Workflow
+
+### 1. Trigger a Scan
+Use the API (or UI) to push a target into the Ingestion Stream.
+```bash
+curl -X POST http://localhost:8000/api/scan \
+  -H "Content-Type: application/json" \
+  -d '{"target": "example.com"}'
+```
+
+### 2. Watch it Flow
+Open **Redis Commander** (`http://localhost:8081`).
+1.  See event appear in `netra:events:ingest`.
+2.  Watch `netra-ingest` worker consume it.
+3.  See result appear in `netra:data:raw`.
+4.  Watch `netra-ml` worker process it.
+
+### 3. Verify Graph
+Open **Neo4j** (`http://localhost:7474`) and run:
+```cypher
+MATCH (n) RETURN n
+```
+You should see nodes for the Domain and its resolved IPs.
+
+---
+
+## 📂 Directory Structure
+```
+Vortex/
+├── deploy/             # Infrastructure scripts
+├── netra/
+│   ├── api/            # FastAPI Application
+│   ├── core/           # Worker Logic
+│   │   ├── discovery/  # DNS, Port Scanners
+│   │   ├── analysis/   # Ruby Bridge, ML Models
+│   │   └── orchestration/ # Redis Messaging
+│   ├── ui/             # React Frontend
+│   └── workers/        # Worker Entrypoints (ingest.py, ml_analysis.py)
+├── docker-compose.yml  # Main Orchestration File
+└── README.md
+```## 🤝 Community & Support
+
+We want to build a robust security platform, and we welcome your input!
+
+*   **Discussions**: Have a question or idea? Join the [GitHub Discussions](https://github.com/PoojasPatel013/Netra/discussions).
+*   **Wiki**: Check out our [Wiki](https://github.com/PoojasPatel013/Netra/wiki) for detailed architectural docs and guides.
+*   **Issues**: Found a bug? Open an Issue!
+
+## 👩‍💻 Contributing
+
+We are **Open for Contributions**! 
+
+While the core project is proprietary, we value the open-source community's expertise. We actively welcome:
+1.  **Bug Reports & Fixes**: Help us make Netra more stable.
+2.  **Feature Requests**: Tell us what modules you want to see next.
+3.  **Documentation Improvements**: Help us make the docs better.
+
+Please read our [CONTRIBUTING.md](CONTRIBUTING.md) for details on our Code of Conduct and PR process.
+
+## 📜 License
+
+**Proprietary & Confidential**. See [LICENSE.md](LICENSE.md) for full details.
+Copyright © 2025 Netra. All rights reserved.

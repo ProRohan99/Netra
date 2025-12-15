@@ -23,12 +23,17 @@ from netra.core.reporter import SARIFReporter
 from netra.core.modules.recon import CTScanner
 from netra.core.modules.secrets import SecretScanner
 from netra.core.modules.api_fuzzer import APIScanner
+from netra.core.orchestration.messaging import NetraStream
 from redis import asyncio as aioredis
+from pydantic import BaseModel
 
 # Database Setup
 # Use SQLite for local development default, Postgres for Docker
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///netra.db")
 REDIS_URL = os.getenv("REDIS_URL")
+
+class ScanRequest(BaseModel):
+    target: str
 
 engine = create_async_engine(DATABASE_URL, echo=True, future=True)
 
@@ -53,6 +58,19 @@ templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
+
+@app.post("/api/scan")
+async def trigger_v2_scan(request: ScanRequest):
+    """
+    v2 Endpoint: Pushes target to Redis Stream for Distributed Scanning.
+    """
+    try:
+        # Connect to the Ingestion Stream
+        stream = NetraStream(stream_key="netra:events:ingest")
+        await stream.publish_target(request.target, source="api")
+        return {"status": "queued", "target": request.target, "message": "Dispatched to Ingestion Worker"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.on_event("startup")
 async def on_startup():

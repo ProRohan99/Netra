@@ -37,15 +37,11 @@ const Dashboard = () => {
         setScanning(true);
         setResults(null);
         setLogs([]);
-        addLog(`INITIALIZING SCAN SEQUENCE FOR: ${target}`);
-
-        // Simulate logs for demo feel immediately
-        setTimeout(() => addLog("Resolving DNS targeting vectors..."), 500);
-        setTimeout(() => addLog("Engaging active reconnaissance modules..."), 1200);
+        addLog(`INITIALIZING DISTRIBUTED SCAN: ${target}`);
 
         try {
-            // Real API Call
-            const response = await fetch('/api/scan/start', {
+            // Netra v2 API Call (Ingestion Stream)
+            const response = await fetch('/api/scan', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ target }),
@@ -53,29 +49,13 @@ const Dashboard = () => {
 
             if (!response.ok) throw new Error('API Handshake Failed');
 
-            addLog('Payload delivered. Job queued.');
+            addLog('Payload delivered to Ingestion Worker (Redis Stream).');
+            addLog('NOTE: View Redis Commander (Port 8081) to watch progress.');
 
-            const pollInterval = setInterval(async () => {
-                try {
-                    const res = await fetch(`/api/scan/results/${encodeURIComponent(target)}`);
-                    const resData = await res.json();
-                    if (resData.status !== 'pending or not found') {
-                        clearInterval(pollInterval);
-                        setResults(resData);
-                        setScanning(false);
-                        addLog('MISSION COMPLETE. Data acquired.');
-                    }
-                } catch (e) { console.error(e); }
-            }, 2000);
-
-            // Timeout
             setTimeout(() => {
-                clearInterval(pollInterval);
-                if (scanning) {
-                    setScanning(false);
-                    addLog("TIMEOUT: Target unresponsive.");
-                }
-            }, 60000);
+                setScanning(false);
+                addLog('Scan Dispatched Successfully.');
+            }, 1000);
 
         } catch (e) {
             addLog(`CRITICAL FAILURE: ${e.message}`);
