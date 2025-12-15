@@ -118,18 +118,27 @@ We want to build a robust security platform, and we welcome your input!
 *   **Wiki**: Check out our [Wiki](https://github.com/PoojasPatel013/Netra/wiki) for detailed architectural docs and guides.
 *   **Issues**: Found a bug? Open an Issue!
 
-## Contributing
+## 👩‍💻 Contributing
 
-We are **Open for Contributions**! 
+**Netra is Open Source!**
 
-While the core project is proprietary, we value the open-source community's expertise. We actively welcome:
-1.  **Bug Reports & Fixes**: Help us make Netra more stable.
-2.  **Feature Requests**: Tell us what modules you want to see next.
-3.  **Documentation Improvements**: Help us make the docs better.
+We follow an **Open Core** model:
+*   **Netra Core (This Repo)**: Apache 2.0 License. Free for everyone forever.
+*   **Netra Boundaries**: Proprietary modules (Advanced ML, SSO, Reporting) will be closed-source extensions.
 
-Please read our [CONTRIBUTING.md](CONTRIBUTING.md) for details on our Code of Conduct and PR process.
+We actively encourage contributions to the Core engine!
+1.  **Bug Reports**: Found a vulnerability in the scanner? Fix it!
+2.  **New Scanners**: Add Python/Ruby modules for new CVEs.
+3.  **Docs**: Improve the Wiki.
+
+Please read our `CONTRIBUTING.md` for our Code of Conduct.
 
 ## 📜 License
 
-**Proprietary & Confidential**. See [LICENSE.md](LICENSE.md) for full details.
-Copyright © 2025 Netra. All rights reserved.
+**Open Source (Apache 2.0)**
+
+The Core Engine is free to use and modify under the Apache 2.0 License. See [LICENSE.md](LICENSE.md).
+
+*Proprietary Boundaries will be licensed separately.*
+
+Copyright © 2025 Netra.
