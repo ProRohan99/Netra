@@ -1,68 +1,51 @@
 version: '3.8'
 
 services:
-  # -------------------------
-  # Application Services
-  # -------------------------
-
-  # Frontend (React + Nginx)
-  ui:
-    build:
-      context: ./netra/ui
-      dockerfile: Dockerfile
-    container_name: netra-ui
-    ports:
-      - "3000:80"
-    depends_on:
-      - api
-    restart: always
-
-  # Backend API (FastAPI)
-  api:
-    build:
-      context: .
-      dockerfile: netra/api.Dockerfile
-    container_name: netra-api
-    ports:
-      - "8000:8000"
-    environment:
-      - REDIS_URL=redis://redis:6379
-      - GRAPH_URL=bolt://neo4j:netra-secret@neo4j:7687
-    depends_on:
-      - redis
-      - neo4j
-    restart: always
-
-  # -------------------------
-  # Infrastructure Services
-  # -------------------------
-
-  # Message Bus
+  # 1. Message Bus (The Nervous System)
   redis:
-    image: redis:7-alpine
+    image: redis:alpine
     container_name: netra-redis
     ports:
       - "6379:6379"
+    memory: 256m
+    networks:
+      - netra-net
     volumes:
       - redis_data:/data
-    restart: always
 
-  # Graph Database
+  # 2. Observability (New Feature)
+  # Allows you to inspect Redis Streams visually at http://localhost:8081
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: netra-monitor
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - netra-net
+    memory: 128m
+
+  # 3. Graph Database (Memory Tuned)
   neo4j:
-    image: neo4j:5-community
+    image: neo4j:community
     container_name: netra-neo4j
     ports:
-      - "7474:7474" # HTTP
-      - "7687:7687" # Bolt
+      - "7474:7474"
+      - "7687:7687"
     environment:
       - NEO4J_AUTH=neo4j/netra-secret
-      - NEO4J_server_memory_heap_initial__size=256m
-      - NEO4J_server_memory_heap_max__size=512m
+      - NEO4J_dbms_memory_heap_initial__size=512m
+      - NEO4J_dbms_memory_heap_max__size=512m
+      - NEO4J_dbms_memory_pagecache_size=256m
     volumes:
       - neo4j_data:/data
-    restart: always
+    networks:
+      - netra-net
 
-  # Object Storage
+  # 4. Object Storage (ML Artifacts)
   minio:
     image: minio/minio
     container_name: netra-minio
@@ -73,25 +56,89 @@ services:
       - MINIO_ROOT_USER=admin
       - MINIO_ROOT_PASSWORD=netra-storage-secret
     command: server /data --console-address ":9001"
-    volumes:
-      - minio_data:/data
-    restart: always
+    memory: 256m
+    networks:
+      - netra-net
 
-  # Worker (Hybrid Python + Ruby)
-  worker:
+  # 5. API Gateway
+  api:
     build:
       context: .
-      dockerfile: netra/worker.Dockerfile
-    container_name: netra-worker
+      dockerfile: netra/api/Dockerfile
+    container_name: netra-api
+    ports:
+      - "8000:8000"
     environment:
       - REDIS_URL=redis://redis:6379
-      - GRAPH_URL=bolt://neo4j:netra-secret@neo4j:7687
+      - NEO4J_URL=bolt://neo4j:7687
     depends_on:
       - redis
       - neo4j
-    restart: always
+    networks:
+      - netra-net
+    volumes:
+      - ./netra:/app/netra
+
+  # 6. Frontend UI (New Feature)
+  frontend:
+    build:
+      context: ./netra/ui
+      dockerfile: Dockerfile
+    container_name: netra-ui
+    ports:
+      - "3000:80"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+    networks:
+      - netra-net
+    memory: 256m
+
+  # 7. Ingestion Worker (I/O Bound - Fast)
+  # Scans ports, DNS, headers. Pushes raw data to Redis.
+  worker-ingest:
+    build:
+      context: .
+      dockerfile: netra/core/Dockerfile
+    container_name: netra-ingest
+    command: python -m netra.workers.ingest
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - WORKER_TYPE=ingestion
+    depends_on:
+      - redis
+    networks:
+      - netra-net
+    volumes:
+      - ./netra:/app/netra
+    memory: 256m
+
+  # 8. ML Analysis Worker (CPU Bound - Smart)
+  # Consumes raw data, runs classifiers (Zombie API, False Positive), updates Graph.
+  worker-ml:
+    build:
+      context: .
+      dockerfile: netra/core/Dockerfile
+    container_name: netra-ml
+    command: python -m netra.workers.ml_analysis
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - NEO4J_URL=bolt://neo4j:7687
+      - WORKER_TYPE=analysis
+    depends_on:
+      - redis
+      - neo4j
+    networks:
+      - netra-net
+    volumes:
+      - ./netra:/app/netra
+    memory: 1024m # Give this one more RAM for models
 
 volumes:
   redis_data:
   neo4j_data:
   minio_data:
+
+
+networks:
+  netra-net:
+    driver: bridge

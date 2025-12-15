@@ -22,6 +22,17 @@ class NetraStream:
         }
         await self.redis.xadd(self.stream_key, message)
 
+    async def publish_raw_data(self, data: dict):
+        """Push raw scan results for ML analysis."""
+        await self.connect()
+        # Publish to a different key for ML worker
+        stream_key = "netra:data:raw"
+        message = {
+            "type": "raw_scan_result",
+            "payload": json.dumps(data)
+        }
+        await self.redis.xadd(stream_key, message)
+
     async def consume_events(self, group: str, consumer: str):
         """Consume events from the stream (generator)."""
         await self.connect()

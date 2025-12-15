@@ -9,8 +9,6 @@ RUN npm run build
 # Stage 2: Serve
 FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
-# Copy custom nginx config if we had one, for now default is okay-ish but SPA needs fallback
-# We will create a simple inline config for SPA fallback
 RUN echo 'server { \
     listen 80; \
     location / { \
