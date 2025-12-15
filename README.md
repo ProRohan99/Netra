@@ -109,7 +109,8 @@ Vortex/
 │   └── workers/        # Worker Entrypoints (ingest.py, ml_analysis.py)
 ├── docker-compose.yml  # Main Orchestration File
 └── README.md
-```## 🤝 Community & Support
+```
+## 🤝 Community & Support
 
 We want to build a robust security platform, and we welcome your input!
 
