@@ -7,7 +7,7 @@ NETRA is an **Applied ML Systems** research platform designed to demonstrate adv
 
 ---
 
-## 🏗️ v2 Architecture: "The ML Systems Approach"
+##  v2 Architecture: "The ML Systems Approach"
 
 Netra v2 departs from the monolithic scanner model to a distributed, event-driven architecture optimized for High-Throughput I/O and CPU-bound Inference.
 
@@ -19,8 +19,8 @@ graph TD
     API -->|Push Event| Redis{Redis Stream: netra:events}
     
     subgraph "Workload Isolation"
-        WorkerIO[Worker Ingest (I/O Bound)]
-        WorkerML[Worker ML (CPU Bound)]
+        WorkerIO["Worker Ingest (I/O Bound)"]
+        WorkerML["Worker ML (CPU Bound)"]
     end
     
     Redis -->|Consume| WorkerIO
@@ -43,7 +43,7 @@ graph TD
 
 ---
 
-## 🚀 Quick Start (Docker)
+## Quick Start (Docker)
 
 Netra v2 is designed to run locally with a single command.
 
@@ -53,23 +53,23 @@ Netra v2 is designed to run locally with a single command.
 ### Setup
 1.  **Clone & Start**:
     ```bash
-    git clone https://github.com/PoojasPatel013/Vortex.git
-    cd Vortex
+    git clone https://github.com/PoojasPatel013/Netra.git
+    cd Netra
     docker compose up --build -d
     ```
 
 2.  **Access the Platform**:
-    | Service | URL | Credentials |
-    | :--- | :--- | :--- |
-    | **Netra UI** | [http://localhost:3000](http://localhost:3000) | - |
-    | **API Docs** | [http://localhost:8000/docs](http://localhost:8000/docs) | - |
-    | **Redis Commander** | [http://localhost:8081](http://localhost:8081) | - |
-    | **Neo4j** | [http://localhost:7474](http://localhost:7474) | `neo4j` / `netra-secret` |
-    | **MinIO** | [http://localhost:9001](http://localhost:9001) | `admin` / `netra-storage-secret` |
+    | Service | URL |
+    | :--- | :--- |
+    | **Netra UI** | [http://localhost:3000](http://localhost:3000) |
+    | **API Docs** | [http://localhost:8000/docs](http://localhost:8000/docs) |
+    | **Redis Commander** | [http://localhost:8081](http://localhost:8081) |
+    | **Neo4j** | [http://localhost:7474](http://localhost:7474) |
+    | **MinIO** | [http://localhost:9001](http://localhost:9001) |
 
 ---
 
-## 🧪 Development Workflow
+## Development Workflow
 
 ### 1. Trigger a Scan
 Use the API (or UI) to push a target into the Ingestion Stream.
@@ -95,7 +95,7 @@ You should see nodes for the Domain and its resolved IPs.
 
 ---
 
-## 📂 Directory Structure
+## Directory Structure
 ```
 Vortex/
 ├── deploy/             # Infrastructure scripts
@@ -117,7 +117,7 @@ We want to build a robust security platform, and we welcome your input!
 *   **Wiki**: Check out our [Wiki](https://github.com/PoojasPatel013/Netra/wiki) for detailed architectural docs and guides.
 *   **Issues**: Found a bug? Open an Issue!
 
-## 👩‍💻 Contributing
+## Contributing
 
 We are **Open for Contributions**! 
 
