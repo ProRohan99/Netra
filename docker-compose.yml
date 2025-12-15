@@ -1,45 +1,97 @@
+version: '3.8'
+
 services:
-  web:
-    build: .
+  # -------------------------
+  # Application Services
+  # -------------------------
+
+  # Frontend (React + Nginx)
+  ui:
+    build:
+      context: ./netra/ui
+      dockerfile: Dockerfile
+    container_name: netra-ui
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+    restart: always
+
+  # Backend API (FastAPI)
+  api:
+    build:
+      context: .
+      dockerfile: netra/api.Dockerfile
+    container_name: netra-api
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql+asyncpg://netra:netrapassword@db:5432/netra_db
-      - REDIS_URL=redis://redis:6379/0
+      - REDIS_URL=redis://redis:6379
+      - GRAPH_URL=bolt://neo4j:netra-secret@neo4j:7687
     depends_on:
-      - db
       - redis
-    volumes:
-      - .:/app # Hot reload for development
-    command: uvicorn netra.api.main:app --host 0.0.0.0 --port 8000 --reload
+      - neo4j
+    restart: always
 
-  db:
-    image: postgres:15-alpine
-    environment:
-      - POSTGRES_USER=netra
-      - POSTGRES_PASSWORD=netrapassword
-      - POSTGRES_DB=netra_db
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+  # -------------------------
+  # Infrastructure Services
+  # -------------------------
 
+  # Message Bus
   redis:
-    image: redis:alpine
+    image: redis:7-alpine
+    container_name: netra-redis
     ports:
       - "6379:6379"
-
-  worker:
-    build: .
-    environment:
-      - DATABASE_URL=postgresql+asyncpg://netra:netrapassword@db:5432/netra_db
-      - REDIS_URL=redis://redis:6379/0
-    depends_on:
-      - db
-      - redis
     volumes:
-      - .:/app
-    command: python -m netra.core.worker
+      - redis_data:/data
+    restart: always
+
+  # Graph Database
+  neo4j:
+    image: neo4j:5-community
+    container_name: netra-neo4j
+    ports:
+      - "7474:7474" # HTTP
+      - "7687:7687" # Bolt
+    environment:
+      - NEO4J_AUTH=neo4j/netra-secret
+      - NEO4J_server_memory_heap_initial__size=256m
+      - NEO4J_server_memory_heap_max__size=512m
+    volumes:
+      - neo4j_data:/data
+    restart: always
+
+  # Object Storage
+  minio:
+    image: minio/minio
+    container_name: netra-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=netra-storage-secret
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    restart: always
+
+  # Worker (Hybrid Python + Ruby)
+  worker:
+    build:
+      context: .
+      dockerfile: netra/worker.Dockerfile
+    container_name: netra-worker
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - GRAPH_URL=bolt://neo4j:netra-secret@neo4j:7687
+    depends_on:
+      - redis
+      - neo4j
+    restart: always
 
 volumes:
-  postgres_data:
+  redis_data:
+  neo4j_data:
+  minio_data:
