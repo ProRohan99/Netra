@@ -232,11 +232,6 @@ async def delete_scan(scan_id: int, session: AsyncSession = Depends(get_session)
     await session.commit()
     return {"ok": True}
 
-@app.get("/scans/{scan_id}/sarif")
-async def export_scan_sarif(scan_id: int, session: AsyncSession = Depends(get_session)):
-    scan = await session.get(Scan, scan_id)
-    if not scan:
-        raise HTTPException(status_code=404, detail="Scan not found")
     
     if not scan.results:
         return {"error": "Scan has no results yet"}
@@ -245,3 +240,103 @@ async def export_scan_sarif(scan_id: int, session: AsyncSession = Depends(get_se
     sarif_data = reporter.convert_scan_results(scan.results, scan.target)
     
     return sarif_data
+
+# Graph & Asset Endpoints (Real Data Wiring)
+from neomodel import config, db
+
+# Initialize Neo4j (Lazy connection)
+# Ensure NEO4J_URL is suitable for neomodel (bolt://user:pass@host:port)
+config.DATABASE_URL = os.getenv("NEO4J_URL", "bolt://neo4j:netra-secret@neo4j:7687")
+
+@app.get("/api/graph")
+async def get_graph_data():
+    """
+    Returns the Knowledge Graph (Nodes & Edges) for visualization.
+    """
+    try:
+        # Fetch generic graph data (Limit to avoid exploding the UI)
+        query = "MATCH (n)-[r]->(m) RETURN n, r, m LIMIT 200"
+        results, meta = db.cypher_query(query)
+        
+        nodes = {}
+        links = []
+        
+        for row in results:
+            source_node = row[0]
+            rel = row[1]
+            target_node = row[2]
+            
+            # Helper to deduplicate nodes
+            def process_node(node):
+                labels = list(node.labels)
+                node_id = str(node.id)
+                if node_id not in nodes:
+                    # Try to find a meaningful label/name
+                    label = node.get('name') or node.get('address') or node.get('resource_id') or node.get('fingerprint') or "Unknown"
+                    nodes[node_id] = {
+                        "id": node_id,
+                        "group": labels[0] if labels else "Node",
+                        "label": label,
+                        "properties": dict(node)
+                    }
+                return node_id
+
+            s_id = process_node(source_node)
+            t_id = process_node(target_node)
+            
+            links.append({
+                "source": s_id,
+                "target": t_id,
+                "type": rel.type
+            })
+            
+        return {
+            "nodes": list(nodes.values()),
+            "links": links
+        }
+    except Exception as e:
+        print(f"Graph Query Error: {e}")
+        # Return empty structure on failure to prevent UI crash
+        return {"nodes": [], "links": []}
+
+@app.get("/api/assets")
+async def get_assets_inventory():
+    """
+    Returns a flattened inventory of all discovered assets.
+    """
+    try:
+        # Fetch Domains
+        query_domains = "MATCH (d:Domain) RETURN d"
+        domains, _ = db.cypher_query(query_domains)
+        
+        # Fetch IPs
+        query_ips = "MATCH (i:IPAddress) RETURN i"
+        ips, _ = db.cypher_query(query_ips)
+        
+        assets = []
+        
+        for row in domains:
+            d = row[0]
+            assets.append({
+                "id": d.id,
+                "name": d['name'],
+                "type": "Domain",
+                "details": f"Registrar: {d.get('registrar', 'N/A')}",
+                "status": "active" # Placeholder
+            })
+            
+        for row in ips:
+            i = row[0]
+            assets.append({
+                "id": i.id,
+                "name": i['address'],
+                "type": "IP Address",
+                "details": f"Version: {i.get('version', 'IPv4')}",
+                "status": "active"
+            })
+            
+        return assets
+    except Exception as e:
+        print(f"Asset Query Error: {e}")
+        return []
+
