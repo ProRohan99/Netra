@@ -20,7 +20,8 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
-
+poetry.lock
+scan_version.json
 # Virtual Environment
 .env
 .venv

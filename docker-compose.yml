@@ -80,7 +80,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - REDIS_URL=redis://redis:6379
+      - NETRA_REDIS_URL=redis://redis:6379
       - NEO4J_URL=bolt://neo4j:7687
     depends_on:
       - redis
@@ -116,7 +116,7 @@ services:
     container_name: netra-ingest
     command: python -m netra.workers.ingest
     environment:
-      - REDIS_URL=redis://redis:6379
+      - NETRA_REDIS_URL=redis://redis:6379
       - WORKER_TYPE=ingestion
     depends_on:
       - redis
@@ -138,7 +138,7 @@ services:
     container_name: netra-ml
     command: python -m netra.workers.ml_analysis
     environment:
-      - REDIS_URL=redis://redis:6379
+      - NETRA_REDIS_URL=redis://redis:6379
       - NEO4J_URL=bolt://neo4j:7687
       - WORKER_TYPE=analysis
     depends_on:
