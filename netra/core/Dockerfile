@@ -13,7 +13,7 @@ WORKDIR /app
 # Install Python Deps
 COPY pyproject.toml .
 RUN pip install poetry && poetry config virtualenvs.create false
-RUN poetry install --no-dev
+RUN poetry install --only main
 
 # Copy Application Code
 COPY netra ./netra
