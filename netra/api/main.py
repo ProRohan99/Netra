@@ -34,6 +34,7 @@ REDIS_URL = os.getenv("REDIS_URL")
 
 class ScanRequest(BaseModel):
     target: str
+    options: dict = {}
 
 engine = create_async_engine(DATABASE_URL, echo=True, future=True)
 
@@ -67,7 +68,7 @@ async def trigger_v2_scan(request: ScanRequest):
     try:
         # Connect to the Ingestion Stream
         stream = NetraStream(stream_key="netra:events:ingest")
-        await stream.publish_target(request.target, source="api")
+        await stream.publish_target(request.target, source="api", options=request.options)
         return {"status": "queued", "target": request.target, "message": "Dispatched to Ingestion Worker"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

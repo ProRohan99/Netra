@@ -32,7 +32,8 @@ export default {
             fontFamily: {
                 sans: ['Inter', 'sans-serif'],
                 mono: ['Fira Code', 'monospace'],
-                display: ['Orbitron', 'sans-serif'], 
+                display: ['Orbitron', 'sans-serif'],
+                serif: ['"Playfair Display"', 'serif'],
             },
             animation: {
                 'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',

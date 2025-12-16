@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { Terminal, Play, Activity, AlertOctagon, CheckCircle, Server, Globe, Cpu, Shield } from 'lucide-react';
+import { Terminal, Play, Activity, AlertOctagon, CheckCircle, Server, Globe, Cpu, Shield, Download } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ActivityFeed from '../components/ActivityFeed';
 
@@ -8,17 +7,17 @@ const StatCard = ({ title, value, icon: Icon, color, trend, delay }) => (
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: delay }}
-        className="bg-cyber-dark border border-cyber-border p-5 rounded-xl relative overflow-hidden group hover:border-radium-500/50 transition-all duration-300"
+        className="bg-white dark:bg-cyber-dark border border-slate-200 dark:border-cyber-border p-5 rounded-xl relative overflow-hidden group hover:border-radium-500/50 transition-all duration-300"
     >
         <div className={`absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity ${color}`}>
             <Icon className="w-16 h-16" />
         </div>
         <div className="flex items-center justify-between mb-4">
-            <h3 className="text-slate-400 text-sm font-mono tracking-wider">{title}</h3>
+            <h3 className="text-slate-500 dark:text-slate-400 text-sm font-mono tracking-wider">{title}</h3>
             <Icon className={`w-5 h-5 ${color.replace('bg-', 'text-')}`} />
         </div>
         <div className="flex items-end gap-2">
-            <span className="text-3xl font-bold text-white font-display text-glow">{value}</span>
+            <span className="text-3xl font-bold text-slate-800 dark:text-white font-display text-glow">{value}</span>
             <span className="text-xs text-radium-400 mb-1 font-mono">{trend}</span>
         </div>
     </motion.div>
@@ -63,143 +62,173 @@ const Dashboard = () => {
         }
     };
 
+    const exportResults = () => {
+        if (!results) return;
+        const blob = new Blob([JSON.stringify(results, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `netra-scan-${target}-${new Date().toISOString()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
     return (
-        <div className="space-y-6">
-            {/* KPI Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard title="TOTAL SCANS" value="1,284" icon={Activity} color="text-blue-500" trend="+12% this week" delay={0.1} />
-                <StatCard title="CRITICAL VULNS" value="42" icon={AlertOctagon} color="text-red-500" trend="-5% resolved" delay={0.2} />
-                <StatCard title="ACTIVE ASSETS" value="856" icon={Server} color="text-green-500" trend="+3 new" delay={0.3} />
-                <StatCard title="THREAT LEVEL" value="MODERATE" icon={Globe} color="text-yellow-500" trend="Defcon 3" delay={0.4} />
+        <div className="max-w-7xl mx-auto">
+            {/* Breaking News / KPI Ticker */}
+            <div className="mb-8 border-b-2 border-slate-900 dark:border-slate-100 pb-4">
+                <div className="flex flex-wrap gap-4 justify-between items-end">
+                    <div>
+                        <span className="bg-red-600 text-white px-2 py-1 font-bold text-xs uppercase tracking-widest mr-2 animate-pulse">BREAKING</span>
+                        <span className="font-serif italic text-lg text-slate-700 dark:text-slate-300">
+                            Threat Level reaches "MODERATE" as new assets discovered...
+                        </span>
+                    </div>
+                    <div className="font-mono text-xs text-slate-500">
+                        INDEX: SCANS {1284} | VULNS {42} | ASSETS {856}
+                    </div>
+                </div>
             </div>
 
-            {/* Main Interface */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
+            {/* Main Content: 3 Column Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-                {/* Left Column: Input & Logs */}
-                <div className="lg:col-span-1 flex flex-col gap-6">
-                    {/* Input Card */}
-                    <div className="bg-cyber-dark border border-cyber-border p-6 rounded-xl shadow-lg relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-radium-500 to-transparent opacity-50"></div>
-                        <h2 className="text-xl font-display font-bold text-white mb-4 flex items-center gap-2">
-                            <Terminal className="w-5 h-5 text-radium-500" />
-                            Target Acquisition
-                        </h2>
+                {/* Left Column: Input / Control (Lead Story) - Spans 4 */}
+                <div className="lg:col-span-4 space-y-8">
+                    <div className="bg-white dark:bg-[#1a1a1a] p-6 shadow-xl border border-slate-200 dark:border-gray-800 relative">
+                        {/* Newspaper Header for Section */}
+                        <div className="border-b-4 border-double border-slate-800 dark:border-gray-600 mb-4 pb-2">
+                            <h2 className="font-serif font-black text-3xl text-slate-900 dark:text-slate-100 leading-none">
+                                TARGET ACQUISITION
+                            </h2>
+                        </div>
 
-                        <div className="relative mb-4">
+                        <div className="prose dark:prose-invert">
+                            <p className="font-serif text-slate-600 dark:text-slate-400 mb-4 first-letter:text-5xl first-letter:font-bold first-letter:float-left first-letter:mr-2 first-letter:mt-[-10px]">
+                                Initiate a new reconnaissance mission by specifying the target coordinates below. Ensure all protocols are followed.
+                            </p>
+                        </div>
+
+                        {/* Input Field Refactored */}
+                        <div className="relative mb-6 mt-6">
+                            <label className="block font-sans text-xs font-bold uppercase tracking-widest mb-1 text-slate-500">Target Domain</label>
                             <input
                                 type="text"
                                 value={target}
                                 onChange={(e) => setTarget(e.target.value)}
-                                placeholder="Enter Domain / IP..."
-                                className="w-full bg-cyber-black border border-cyber-border rounded-lg py-3 px-4 text-white font-mono focus:outline-none focus:border-radium-500 focus:shadow-neon transition-all placeholder-slate-600"
+                                placeholder="example.com"
+                                className="w-full bg-slate-100 dark:bg-black border-b-2 border-slate-800 dark:border-slate-200 px-4 py-3 text-xl font-serif text-slate-900 dark:text-white focus:outline-none focus:bg-yellow-50 dark:focus:bg-gray-900 transition-colors rounded-t-sm"
                             />
-                            <div className="absolute right-3 top-3.5">
-                                <span className="flex h-2 w-2 relative">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-radium-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-radium-500"></span>
-                                </span>
+                        </div>
+
+                        {/* Config (Classifieds) */}
+                        <div className="bg-slate-100 dark:bg-gray-900 p-4 border border-slate-300 dark:border-gray-700 mb-6">
+                            <h3 className="font-sans font-bold text-xs uppercase text-slate-500 mb-2 border-b border-slate-300 pb-1">Mission Parameters</h3>
+                            <div className="grid grid-cols-2 gap-y-2">
+                                {['Cloud', 'IoT', 'GraphQL', 'AutoExploit'].map(opt => (
+                                    <label key={opt} className="flex items-center space-x-2 cursor-pointer">
+                                        <input type="checkbox" className="form-checkbox text-slate-900 rounded-none w-4 h-4" />
+                                        <span className="font-serif text-sm text-slate-700 dark:text-slate-300 italic">{opt}</span>
+                                    </label>
+                                ))}
                             </div>
                         </div>
 
                         <button
                             onClick={startScan}
                             disabled={scanning}
-                            className={`w-full py-3 rounded-lg font-bold font-mono tracking-widest transition-all duration-300 flex items-center justify-center gap-2 ${scanning
-                                ? 'bg-radium-900/50 text-radium-500 cursor-not-allowed border border-radium-500/20'
-                                : 'bg-radium-600 hover:bg-radium-500 text-white shadow-neon hover:scale-[1.02]'
+                            className={`w-full py-4 border-2 border-slate-900 dark:border-white font-bold font-sans tracking-widest uppercase transition-all hover:bg-slate-900 hover:text-white dark:hover:bg-white dark:hover:text-black ${scanning ? 'opacity-50 cursor-not-allowed' : ''
                                 }`}
                         >
-                            {scanning ? <Activity className="w-5 h-5 animate-spin" /> : <Play className="w-5 h-5" />}
-                            {scanning ? 'SCANNING...' : 'INITIATE SCAN'}
+                            {scanning ? 'TRANSMITTING...' : 'LAUNCH OPERATION'}
                         </button>
                     </div>
 
-                    {/* Console Logs */}
-                    {/* Activity Feed (Replacing Logs) */}
-                    <ActivityFeed />
+                    {/* Activity Ticker (Side) */}
+                    <div className="border-t-2 border-slate-900 pt-4">
+                        <ActivityFeed />
+                    </div>
                 </div>
 
-                {/* Right Column: Visualization / Results */}
-                <div className="lg:col-span-2 bg-cyber-dark/50 border border-cyber-border rounded-xl p-6 relative backdrop-blur overflow-hidden flex flex-col">
-                    {/* Scan Results Visualization */}
-                    {!results ? (
-                        <div className="flex-1 flex flex-col items-center justify-center relative">
-                            {/* Scan Animation Placeholder */}
-                            <div className="relative w-64 h-64">
-                                <div className={`absolute inset-0 border-4 border-radium-500/20 rounded-full ${scanning ? 'animate-ping' : ''}`}></div>
-                                <div className={`absolute inset-4 border-4 border-t-radium-500 border-r-transparent border-b-radium-500 border-l-transparent rounded-full ${scanning ? 'animate-spin-slow' : ''}`}></div>
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="text-center">
-                                        <Shield className={`w-12 h-12 mx-auto mb-2 text-radium-500 ${scanning ? 'animate-pulse' : 'opacity-50'}`} />
-                                        <p className="text-radium-500 font-mono text-sm tracking-widest">{scanning ? 'ANALYZING' : 'READY'}</p>
-                                    </div>
-                                </div>
+                {/* Main Column: Results / Visualization (Center Spread) - Spans 8 */}
+                <div className="lg:col-span-8">
+                    <div className="bg-white dark:bg-[#1a1a1a] shadow-2xl p-8 min-h-[600px] border border-slate-200 dark:border-gray-800 paper-texture">
+                        {/* Center Headline */}
+                        <div className="text-center mb-8">
+                            <h2 className="font-serif font-bold text-4xl mb-2 text-slate-900 dark:text-white">Analysis Report</h2>
+                            <div className="flex justify-center items-center gap-4 text-xs font-sans font-bold text-slate-400 uppercase tracking-widest">
+                                <span>Intelligence Division</span>
+                                <span>&bull;</span>
+                                <span>{new Date().toLocaleDateString()}</span>
+                                {results && (
+                                    <>
+                                        <span>&bull;</span>
+                                        <button onClick={exportResults} className="text-red-600 hover:underline flex items-center gap-1">
+                                            <Download className="w-3 h-3" /> PRINT EXPORT
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         </div>
-                    ) : (
-                        <div className="h-full overflow-y-auto pr-2 space-y-4">
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-xl font-display text-white">Analysis Report</h2>
-                                <span className="px-3 py-1 bg-green-900/30 text-green-400 border border-green-500/30 rounded text-xs font-mono">COMPLETED</span>
-                            </div>
 
-                            {/* Dynamic Cards based on Results */}
-
-                            {/* Port Scanner */}
-                            {results.PortScanner && (
-                                <div className="bg-cyber-black p-4 rounded-lg border border-cyber-border hover:border-radium-500/30 transition-colors">
-                                    <div className="flex items-center gap-2 mb-3">
-                                        <Server className="w-4 h-4 text-blue-400" />
-                                        <h4 className="text-sm font-bold text-slate-300">OPEN PORTS</h4>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2">
-                                        {results.PortScanner.open_ports?.map(p => (
-                                            <span key={p} className="px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded text-xs font-mono font-bold tracking-wider">
-                                                PORT {p}
-                                            </span>
-                                        )) || <span className="text-slate-500 text-xs italic">No open ports detected.</span>}
-                                    </div>
+                        <div className="columns-1 md:columns-2 gap-8 text-justify">
+                            {!results ? (
+                                <div className="break-inside-avoid flex flex-col items-center justify-center h-64 border-4 border-double border-slate-200 dark:border-gray-800 p-8 text-center text-slate-400 italic font-serif">
+                                    <Shield className={`w-16 h-16 mb-4 ${scanning ? 'animate-pulse text-slate-800 dark:text-white' : ''}`} />
+                                    {scanning ? "Receiving transmission from field agents..." : "Awaiting Mission Directives. No intelligence data available."}
                                 </div>
-                            )}
-
-                            {/* Threats */}
-                            {results.ThreatScanner && (
-                                <div className="bg-cyber-black p-4 rounded-lg border border-cyber-border hover:border-red-500/30 transition-colors">
-                                    <div className="flex items-center gap-2 mb-3">
-                                        <AlertOctagon className="w-4 h-4 text-red-500" />
-                                        <h4 className="text-sm font-bold text-slate-300">THREAT INTEL</h4>
+                            ) : (
+                                <>
+                                    {/* Article 1: Ports */}
+                                    <div className="break-inside-avoid mb-8">
+                                        <h3 className="font-sans font-bold text-lg uppercase border-b-2 border-black dark:border-white mb-2 pb-1">Network Surface</h3>
+                                        <p className="font-serif text-sm mb-2 text-slate-600 dark:text-slate-400">
+                                            Field scanners have identified {results.PortScanner?.open_ports?.length || 0} open entry points on the target system.
+                                        </p>
+                                        <div className="flex flex-wrap gap-2 mt-2">
+                                            {results.PortScanner?.open_ports?.map(p => (
+                                                <span key={p} className="bg-slate-100 dark:bg-gray-800 border border-slate-300 dark:border-gray-600 px-2 py-1 font-mono text-xs font-bold">
+                                                    :{p}
+                                                </span>
+                                            ))}
+                                        </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        {results.ThreatScanner.vulnerabilities?.map((vuln, i) => (
-                                            <div key={i} className="flex items-start gap-3 p-3 bg-red-950/10 border-l-2 border-red-500 rounded">
-                                                <div className="flex-1">
-                                                    <p className="text-red-400 text-sm font-bold">{vuln.type}</p>
-                                                    <p className="text-slate-400 text-xs">{vuln.details}</p>
-                                                </div>
-                                                <span className="text-xs font-mono text-red-500 border border-red-500/20 px-2 py-0.5 rounded">{vuln.severity}</span>
-                                            </div>
-                                        )) || <span className="text-green-500 text-xs">No threats detected.</span>}
+
+                                    {/* Article 2: Threats */}
+                                    <div className="break-inside-avoid mb-8">
+                                        <h3 className="font-sans font-bold text-lg uppercase border-b-2 border-red-600 text-red-600 mb-2 pb-1">Critical Vulnerabilities</h3>
+                                        {results.ThreatScanner?.vulnerabilities?.length > 0 ? (
+                                            <ul className="list-disc pl-4 space-y-2 font-serif text-sm text-slate-700 dark:text-slate-300">
+                                                {results.ThreatScanner.vulnerabilities.map((v, i) => (
+                                                    <li key={i}>
+                                                        <strong>{v.type}</strong>: {v.details}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        ) : (
+                                            <p className="font-serif italic text-slate-500">No immediate threats detected in this sector.</p>
+                                        )}
                                     </div>
-                                </div>
+
+                                    {/* Raw Data */}
+                                    <div className="break-inside-avoid p-4 bg-slate-50 dark:bg-black border border-slate-200 dark:border-gray-800">
+                                        <h4 className="font-mono text-xs font-bold mb-2">RAW_WIRE_TAP.log</h4>
+                                        <pre className="font-mono text-[10px] overflow-x-auto text-slate-600 dark:text-gray-400">
+                                            {JSON.stringify(results, null, 2)}
+                                        </pre>
+                                    </div>
+                                </>
                             )}
-
-                            {/* JSON Dump for unmatched */}
-                            <div className="mt-4">
-                                <details>
-                                    <summary className="text-xs text-slate-500 cursor-pointer hover:text-white">View Raw Data</summary>
-                                    <pre className="mt-2 text-[10px] text-slate-400 bg-black p-4 rounded font-mono overflow-x-auto">
-                                        {JSON.stringify(results, null, 2)}
-                                    </pre>
-                                </details>
-                            </div>
-
                         </div>
-                    )}
+                    </div>
                 </div>
+
             </div>
         </div>
     );
 };
 
 export default Dashboard;
+```
