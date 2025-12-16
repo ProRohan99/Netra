@@ -1,7 +1,10 @@
+import { useState, useEffect } from 'react';
 import Assets from './views/Assets';
 import GraphView from './views/GraphView';
 import Settings from './views/Settings';
 import { AnimatePresence, motion } from 'framer-motion';
+import Dashboard from './views/Dashboard';
+import Header from './components/Header';
 
 function App() {
     // ... existing ... 

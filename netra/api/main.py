@@ -51,14 +51,23 @@ async def get_session():
 
 app = FastAPI(title="Netra API", version="0.1.0")
 
-# Setup Static & Templates
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
-templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
+# Setup Static & Templates (DISABLED for v2 - Use React Frontend on Port 3000)
+# BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
+# templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return """
+    <html>
+        <body style="font-family: sans-serif; text-align: center; padding-top: 50px; background-color: #f8f9fa;">
+            <h1>Netra v2 API Gateway</h1>
+            <p>The UI has moved to <a href="http://localhost:3000">http://localhost:3000</a>.</p>
+            <p>API Documentation is available at <a href="/docs">/docs</a>.</p>
+        </body>
+    </html>
+    """
+    # return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/api/scan")
 async def trigger_v2_scan(request: ScanRequest):
