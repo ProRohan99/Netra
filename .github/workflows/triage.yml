@@ -11,6 +11,7 @@ jobs:
       issues: write
     steps:
       - name: Auto-Assign Admin
+        if: github.actor != 'PoojasPatel013'
         uses: actions-cool/issues-helper@v3
         with:
           actions: 'add-assignees'
@@ -25,14 +26,36 @@ jobs:
             const body = context.payload.issue.body ? context.payload.issue.body.toLowerCase() : "";
             const labels = [];
             
-            if (title.includes('bug') || body.includes('bug') || title.includes('error') || title.includes('fail')) {
+            // Helper to check for whole words only (prevents 'docker' matching 'doc')
+            const hasWord = (text, word) => new RegExp(`\\b${word}\\b`, 'i').test(text);
+            
+            if (hasWord(title, 'bug') || hasWord(body, 'bug') || hasWord(title, 'error') || hasWord(title, 'fail')) {
               labels.push('bug');
             }
-            if (title.includes('feature') || body.includes('feature') || title.includes('request')) {
+            if (hasWord(title, 'feature') || hasWord(title, 'request') || hasWord(title, 'enhancement')) {
               labels.push('enhancement');
             }
-            if (title.includes('doc') || body.includes('documentation')) {
+            if (hasWord(title, 'docs') || hasWord(title, 'documentation') || hasWord(body, 'guide')) {
               labels.push('documentation');
+            }
+            // UI/Frontend
+            if (hasWord(title, 'ui') || hasWord(title, 'frontend') || hasWord(title, 'react') || hasWord(title, 'css')) {
+              labels.push('ui');
+            }
+            // Backend/Ruby
+            if (hasWord(title, 'ruby') || hasWord(body, 'ruby') || hasWord(title, 'gem')) {
+              labels.push('ruby');
+            }
+            // Testing
+            if (hasWord(title, 'test') || hasWord(title, 'tests') || hasWord(title, 'coverage') || hasWord(title, 'pytest')) {
+              labels.push('tests');
+            }
+            // Infra/Docker/Helm
+            if (hasWord(title, 'docker') || hasWord(body, 'container')) {
+              labels.push('docker');
+            }
+            if (hasWord(title, 'helm') || hasWord(title, 'k8s') || hasWord(title, 'kubernetes') || hasWord(title, 'chart')) {
+              labels.push('helm');
             }
             
             if (labels.length > 0) {
