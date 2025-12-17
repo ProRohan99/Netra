@@ -90,23 +90,6 @@ services:
     volumes:
       - ./netra:/app/netra
 
-  # 6. Frontend UI (New Feature)
-  frontend:
-    build:
-      context: ./netra/ui
-      dockerfile: Dockerfile
-    container_name: netra-ui
-    ports:
-      - "3000:80"
-    environment:
-      - REACT_APP_API_URL=http://localhost:8000
-    networks:
-      - netra-net
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-
   # 7. Ingestion Worker (I/O Bound - Fast)
   # Scans ports, DNS, headers. Pushes raw data to Redis.
   worker-ingest:

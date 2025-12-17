@@ -1,7 +1,7 @@
 # NETRA v2 - AI-Native Asset Discovery Engine
 
 > **Status**: v2.1 (Newspaper Edition 📰)
-> **Stack**: Python 3.10, React + Vite (Newspaper UI), Neo4j, Redis Streams, MinIO, Docker Compose
+> **Stack**: Python 3.10, FastAPI (Serving Static HTML + Alpine.js), Neo4j, Redis Streams, MinIO, Docker Compose
 
 NETRA is an **Applied ML Systems** research platform designed to demonstrate advanced concepts in distributed cybersecurity. It continuously discovers assets, maps them in a Knowledge Graph, and uses machine learning to predict risks.
 
@@ -40,8 +40,7 @@ graph TD
 ```
 
 ### Key Components
-1.  **Frontend**: React + Vite (Newspaper Theme). Served via Nginx with API Proxy.
-2.  **Backend API**: FastAPI (AsyncIO).
+1.  **UI/API**: FastAPI serving static HTML/JS dashboard on Port 8000.
 3.  **The "Bus"**: Redis Streams for strictly ordered event processing.
 4.  **Ingestion Worker**: Lightweight, I/O-bound process for DNS resolution and Port Scanning. Includes a **Ruby Bridge** to execute legacy scripts.
 5.  **ML Worker**: Resource-intensive process for False Positive reduction and future model inference.
@@ -68,8 +67,7 @@ Netra v2 is designed to run locally with a single command.
 2.  **Access the Platform**:
     | Service | URL |
     | :--- | :--- |
-    | **Netra UI** | [http://localhost:3000](http://localhost:3000) |
-    | **API Docs** | [http://localhost:8000/docs](http://localhost:8000/docs) |
+    | **Netra UI** | [http://localhost:8000](http://localhost:8000) |
     | **Redis Commander** | [http://localhost:8081](http://localhost:8081) |
     | **Neo4j** | [http://localhost:7474](http://localhost:7474) |
     | **MinIO** | [http://localhost:9001](http://localhost:9001) |

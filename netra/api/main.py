@@ -51,23 +51,30 @@ async def get_session():
 
 app = FastAPI(title="Netra API", version="0.1.0")
 
-# Setup Static & Templates (DISABLED for v2 - Use React Frontend on Port 3000)
-# BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
-# templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
+# Setup Static Files
+# Serve from 'netra/static' directly
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+STATIC_DIR = os.path.join(os.path.dirname(BASE_DIR), "static")
 
-@app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
-    return """
-    <html>
-        <body style="font-family: sans-serif; text-align: center; padding-top: 50px; background-color: #f8f9fa;">
-            <h1>Netra v2 API Gateway</h1>
-            <p>The UI has moved to <a href="http://localhost:3000">http://localhost:3000</a>.</p>
-            <p>API Documentation is available at <a href="/docs">/docs</a>.</p>
-        </body>
-    </html>
-    """
-    # return templates.TemplateResponse("index.html", {"request": request})
+if os.path.exists(STATIC_DIR):
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+from fastapi.responses import FileResponse
+
+# Catch-all for SPA (must be last)
+@app.get("/{full_path:path}")
+async def catch_all(full_path: str):
+    # Allow API routes to pass through (though they should be matched before this if defined above)
+    if full_path.startswith("api") or full_path.startswith("scans") or full_path.startswith("docs") or full_path.startswith("openapi.json"):
+        raise HTTPException(status_code=404, detail="Not Found")
+    
+    # Serve index.html for everything else
+    index_path = os.path.join(STATIC_DIR, "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    return {"error": "Static UI not found. Ensure netra/static/index.html exists."}
+
+
 
 @app.post("/api/scan")
 async def trigger_v2_scan(request: ScanRequest):
@@ -84,6 +91,14 @@ async def trigger_v2_scan(request: ScanRequest):
 
 @app.on_event("startup")
 async def on_startup():
+    print(f"DEBUG: BASE_DIR={BASE_DIR}")
+    print(f"DEBUG: STATIC_DIR={STATIC_DIR}")
+    print(f"DEBUG: STATIC_DIR={STATIC_DIR}")
+    if os.path.exists(STATIC_DIR):
+        print(f"DEBUG: STATIC_DIR exists. Contents: {os.listdir(STATIC_DIR)}")
+    else:
+        print(f"DEBUG: STATIC_DIR DOES NOT EXIST at {STATIC_DIR}")
+        
     retries = 5
     wait = 2
     for i in range(retries):
@@ -98,6 +113,24 @@ async def on_startup():
                 wait *= 2  # Exponential backoff
             else:
                 raise e
+
+@app.get("/debug/fs")
+async def debug_fs():
+    """Temporary debug endpoint to inspect container filesystem"""
+    try:
+        debug_info = {
+            "cwd": os.getcwd(),
+            "base_dir": BASE_DIR,
+            "static_dir": STATIC_DIR,
+            "dist_dir": DIST_DIR,
+            "dist_exists": os.path.exists(DIST_DIR),
+            "dist_contents": os.listdir(DIST_DIR) if os.path.exists(DIST_DIR) else [],
+            "static_contents": os.listdir(STATIC_DIR) if os.path.exists(STATIC_DIR) else [],
+            "app_netra_contents": os.listdir("/app/netra") if os.path.exists("/app/netra") else "Not found",
+        }
+        return debug_info
+    except Exception as e:
+        return {"error": str(e)}
 
 async def run_scan_task(scan_id: int):
     # Create a new session for this task

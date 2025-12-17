@@ -1,3 +1,4 @@
+# Stage 1: Runtime API (Python only)
 FROM python:3.10-slim
 
 WORKDIR /app
