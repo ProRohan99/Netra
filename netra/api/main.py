@@ -340,3 +340,36 @@ async def get_assets_inventory():
         print(f"Asset Query Error: {e}")
         return []
 
+@app.get("/api/stats")
+async def get_stats(session: AsyncSession = Depends(get_session)):
+    """
+    Returns aggregated system stats for the dashboard.
+    """
+    try:
+        # 1. Count Scans
+        result = await session.execute(select(Scan))
+        scans = result.scalars().all()
+        scan_count = len(scans)
+        
+        # 2. Count Assets (Neo4j)
+        # Use a fast count query
+        nodes_result, _ = db.cypher_query("MATCH (n) RETURN count(n)")
+        asset_count = nodes_result[0][0]
+        
+        # 3. Count Vulns (Approximate from Scans for now, or specific node label)
+        # For now, let's sum vulns found in recent scans if stored, or just placeholder '0' until VulnModel is strict.
+        # Simple approach: sum scan.results['ThreatScanner']['vulnerabilities'].length
+        vuln_count = 0
+        for s in scans:
+            if s.results and isinstance(s.results, dict):
+                 threats = s.results.get('ThreatScanner', {}).get('vulnerabilities', [])
+                 vuln_count += len(threats)
+
+        return {
+            "scans": scan_count,
+            "assets": asset_count,
+            "vulns": vuln_count
+        }
+    except Exception as e:
+        print(f"Stats Error: {e}")
+        return {"scans": 0, "assets": 0, "vulns": 0}

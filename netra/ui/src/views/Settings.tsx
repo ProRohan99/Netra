@@ -16,6 +16,23 @@ const Toggle = ({ label, enabled }: ToggleProps) => (
 );
 
 const Settings = () => {
+    const [ddKey, setDdKey] = React.useState('');
+    const [ddUrl, setDdUrl] = React.useState('');
+    const [engagementId, setEngagementId] = React.useState('');
+
+    React.useEffect(() => {
+        setDdKey(localStorage.getItem('NETRA_DD_KEY') || '');
+        setDdUrl(localStorage.getItem('NETRA_DD_URL') || '');
+        setEngagementId(localStorage.getItem('NETRA_DD_ENGAGEMENT_ID') || '');
+    }, []);
+
+    const saveConfig = () => {
+        localStorage.setItem('NETRA_DD_KEY', ddKey);
+        localStorage.setItem('NETRA_DD_URL', ddUrl);
+        localStorage.setItem('NETRA_DD_ENGAGEMENT_ID', engagementId);
+        alert('Configuration Saved!');
+    };
+
     return (
         <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
             <h2 className="text-2xl font-display font-bold text-white mb-6 border-l-4 border-radium-500 pl-4">System Configuration</h2>
@@ -39,20 +56,38 @@ const Settings = () => {
                 <div className="bg-cyber-dark border border-cyber-border rounded-xl p-6 shadow-lg">
                     <div className="flex items-center gap-3 mb-6">
                         <Lock className="w-5 h-5 text-radium-500" />
-                        <h3 className="text-lg font-bold text-white">API Integration</h3>
+                        <h3 className="text-lg font-bold text-white">DefectDojo Integration</h3>
                     </div>
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-xs font-mono text-slate-500 mb-1">DEFECTDOJO API KEY</label>
-                            <input type="password" value="************************" className="w-full bg-cyber-black border border-cyber-border rounded px-3 py-2 text-slate-300 font-mono text-sm focus:border-radium-500 outline-none" disabled />
+                            <label className="block text-xs font-mono text-slate-500 mb-1">DEFECTDOJO URL</label>
+                            <input
+                                type="text"
+                                value={ddUrl}
+                                onChange={(e) => setDdUrl(e.target.value)}
+                                placeholder="https://dojo.example.com"
+                                className="w-full bg-cyber-black border border-cyber-border rounded px-3 py-2 text-slate-300 font-mono text-sm focus:border-radium-500 outline-none"
+                            />
                         </div>
                         <div>
-                            <label className="block text-xs font-mono text-slate-500 mb-1">AWS ACCESS KEY</label>
-                            <input type="password" value="************************" className="w-full bg-cyber-black border border-cyber-border rounded px-3 py-2 text-slate-300 font-mono text-sm focus:border-radium-500 outline-none" disabled />
+                            <label className="block text-xs font-mono text-slate-500 mb-1">API KEY</label>
+                            <input
+                                type="password"
+                                value={ddKey}
+                                onChange={(e) => setDdKey(e.target.value)}
+                                className="w-full bg-cyber-black border border-cyber-border rounded px-3 py-2 text-slate-300 font-mono text-sm focus:border-radium-500 outline-none"
+                            />
                         </div>
-                        <button className="w-full py-2 bg-cyber-black border border-radium-500/30 text-radium-400 text-sm font-mono hover:bg-radium-500/10 transition-colors rounded">
-                            UPDATE CREDENTIALS
-                        </button>
+                        <div>
+                            <label className="block text-xs font-mono text-slate-500 mb-1">ENGAGEMENT ID</label>
+                            <input
+                                type="text"
+                                value={engagementId}
+                                onChange={(e) => setEngagementId(e.target.value)}
+                                placeholder="1"
+                                className="w-full bg-cyber-black border border-cyber-border rounded px-3 py-2 text-slate-300 font-mono text-sm focus:border-radium-500 outline-none"
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -83,7 +118,9 @@ const Settings = () => {
             </div>
 
             <div className="flex justify-end pt-4">
-                <button className="flex items-center gap-2 bg-radium-600 hover:bg-radium-500 text-white px-6 py-3 rounded-lg shadow-neon transition-all font-bold tracking-wide">
+                <button
+                    onClick={saveConfig}
+                    className="flex items-center gap-2 bg-radium-600 hover:bg-radium-500 text-white px-6 py-3 rounded-lg shadow-neon transition-all font-bold tracking-wide">
                     <Save className="w-4 h-4" />
                     SAVE CONFIGURATION
                 </button>

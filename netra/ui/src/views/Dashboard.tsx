@@ -51,30 +51,73 @@ const Dashboard = () => {
         setOptions(prev => ({ ...prev, [opt]: !prev[opt] }));
     };
 
+    const [stats, setStats] = useState({ scans: 0, vulns: 0, assets: 0 });
+
+    useEffect(() => {
+        // Fetch Dashboard Stats
+        fetch('/api/stats')
+            .then(res => res.json())
+            .then(data => setStats(data))
+            .catch(err => console.error("Stats fetch failed", err));
+    }, []);
+
     const startScan = async () => {
         if (!target) return;
         setScanning(true);
         setResults(null);
         setLogs([]);
-        addLog(`INITIALIZING DISTRIBUTED SCAN: ${target}`);
+        addLog(`INITIALIZING SCAN: ${target}`);
+
+        // Inject DefectDojo Config from LocalStorage
+        const ddConfig = {
+            defect_dojo_url: localStorage.getItem('NETRA_DD_URL'),
+            defect_dojo_key: localStorage.getItem('NETRA_DD_KEY'),
+            engagement_id: localStorage.getItem('NETRA_DD_ENGAGEMENT_ID')
+        };
+
+        const finalOptions = { ...options, ...ddConfig };
 
         try {
-            // Netra v2 API Call (Ingestion Stream)
-            const response = await fetch('/api/scan', {
+            // 1. Create Scan Task (POST /scans)
+            const response = await fetch('/scans', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ target, options }),
+                body: JSON.stringify({
+                    target,
+                    scan_type: 'full',
+                    options: finalOptions
+                }),
             });
 
-            if (!response.ok) throw new Error('API Handshake Failed');
+            if (!response.ok) throw new Error('Failed to create scan task');
 
-            addLog('Payload delivered to Ingestion Worker (Redis Stream).');
-            addLog('NOTE: View Redis Commander (Port 8081) to watch progress.');
+            const scan = await response.json();
+            addLog(`Scan ID: ${scan.id} created. Status: ${scan.status}`);
 
-            setTimeout(() => {
-                setScanning(false);
-                addLog('Scan Dispatched Successfully.');
-            }, 1000);
+            // 2. Poll for Status
+            const interval = setInterval(async () => {
+                try {
+                    const statusRes = await fetch(`/scans/${scan.id}`);
+                    const statusData = await statusRes.json();
+
+                    if (statusData.status === 'completed') {
+                        clearInterval(interval);
+                        setResults(statusData.results || {});
+                        setScanning(false);
+                        addLog('Scan Completed Successfully. Intelligence Data Received.');
+                        // Refresh stats after scan
+                        fetch('/api/stats').then(res => res.json()).then(setStats);
+                    } else if (statusData.status === 'failed') {
+                        clearInterval(interval);
+                        setScanning(false);
+                        addLog(`Scan Failed: ${JSON.stringify(statusData.results)}`);
+                    } else {
+                        addLog(`Scan Status: ${statusData.status}...`);
+                    }
+                } catch (err) {
+                    console.error("Polling error", err);
+                }
+            }, 2000);
 
         } catch (e: any) {
             addLog(`CRITICAL FAILURE: ${e.message}`);
@@ -106,7 +149,7 @@ const Dashboard = () => {
                         </span>
                     </div>
                     <div className="font-mono text-xs text-slate-500">
-                        INDEX: SCANS {1284} | VULNS {42} | ASSETS {856}
+                        INDEX: SCANS {`{${stats.scans}}`} | VULNS {`{${stats.vulns}}`} | ASSETS {`{${stats.assets}}`}
                     </div>
                 </div>
             </div>
